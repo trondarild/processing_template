@@ -48,6 +48,21 @@ void draw_q_phase_line(float angle, int quant, float trans_x, float trans_y){
   draw_rot_line(rotangle, trans_x, trans_y);
 }
 
+void barchart_array(float[] data, String legend){
+  float yscl = 47.8;
+  float xscl = 134.0;
+  
+  barchart_array(
+    data,
+    0, 0,
+    yscl, xscl,
+    #A0EA9A,
+    1,
+    1.f,
+    legend
+  );
+}
+
 /**
   float yf1, 
   float xf1, 
@@ -82,9 +97,10 @@ void barchart_array(float[] data,
   color clr, 
   int labelplacement,
   float aymax,
-  String legend,
-  PFont h1,
-  PFont l1) {
+  String legend)
+  // PFont h1,
+  // PFont l1) 
+  {
     pushStyle();
   //Declare a float variabe for the max y axis value.
    float ymax=aymax;
@@ -120,7 +136,7 @@ void barchart_array(float[] data,
        float xcount = data.length;
        
        //Draw the minimum and maximum Y Axis labels. 
-       textFont(h1);
+       // textFont(h1);
        fill (100);
        textAlign(RIGHT, CENTER);
        text(int(ymax), xf1-8, yf1-yscale);
@@ -161,7 +177,7 @@ void barchart_array(float[] data,
          quad(xf1, yf1, xf1, yf1-ysclhght, xf1 + xwidth, yf1-ysclhght, xf1 + xwidth, yf1);
          
          //Draw the labels.
-         textFont(l1);
+         // textFont(l1);
          textAlign(CENTER, CENTER);
          fill (100);
          
@@ -375,12 +391,12 @@ void drawSpikeStrip(Buffer[] aspikes, float threshold){
   float x_i =4; float y_i=10;  
   float margin = 1;
   fill(ptcolor);
-  noStroke(); //<>//
+  noStroke();  
   for(int j=0; j<aspikes.length; j++){
     x=0;
     text("U"+(j+1), x-25, y+5);
     for(int i=0; i<aspikes[0].array().length; i++){
-      // draw the strip //<>//
+      // draw the strip  
     if(aspikes[j].array()[i] > threshold){
       rect(x, y, x_i, y_i);}
     x+= x_i + margin;
@@ -403,15 +419,15 @@ float[][] makeTopology(int dim, int type){
  // 1 nearest neighbor
  // 2 random
  /*
-  [M, N] = size(T); //<>// //<>// //<>// //<>// //<>// //<>//
+  [M, N] = size(T);       
   [X, Y] = meshgrid(max(1,m-5):min(M,m+5), max(1,n-5):min(N,n+5));
   I = sub2ind(size(T), X(:), Y(:));
- */ //<>//
+ */  
  //switch (type){
-   if (type==1){ // nearest neighbor //<>// //<>//
+   if (type==1){ // nearest neighbor   
      // make a source matrix filled with indeces and a border equal to 
      // kernel size
-     int[][] kernel ={{-1,-1}, {-1, 0}, {-1, 1}, //<>//
+     int[][] kernel ={{-1,-1}, {-1, 0}, {-1, 1},  
                        {0,-1}, {0, 1},
                      {1,-1}, {1,0}, {1,1}};
      int border = 1; 
@@ -434,12 +450,12 @@ float[][] makeTopology(int dim, int type){
      }
        
      
-   } //<>// //<>// //<>// //<>// //<>// //<>//
+   }       
    else
    {// TODO implement random
    }
  
- return retval; //<>// //<>//
+ return retval;   
 }
 
 
@@ -615,6 +631,15 @@ float[] mask_array(float[] a, int[] keep){
   return retval;
 }
 
+FloatList arrayToList(float[] a){
+  FloatList retval = new FloatList(a.length);
+
+  for (int i = 0; i < a.length; ++i) {
+    retval.append(a[i]);
+  }
+  return retval;
+}
+
 /**
 */
 float[][] flipMatrixHor(float[][] m){
@@ -731,4 +756,88 @@ float hysteresis(float in, float prev, float lo_thr, float hi_thr){
   else if(in >= hi_thr) r = hi;
   else r = prev;
   return r;
+}
+
+int len(float[] a){
+  return a.length;
+}
+
+float[] generateRndOneHotVec(int size, int hots) {
+  float[] retval = zeros(size);
+  
+  for (int i=0; i<hots; i++){
+    int ix = 0;
+    do {
+      ix = (int)random(0, size);
+    } while (retval[ix] == 1.f); // fixme: termination issue
+    retval[ix] = 1.0;
+  }
+  
+  return retval;
+}
+
+boolean equal(float[] a, float[] b){
+  if (a.length != b.length) return false;
+  
+  for(int i=0; i<a.length; i++)
+    if(a[i] != b[i])
+      return false;
+  return true;
+}
+
+float[][] generateUniquePatterns(int rows, int cols, int hots){
+  float[][] retval = zeros(rows, cols);
+  for(int j=0; j<rows; j++){
+    float[] vec;
+    do {
+      vec = generateRndOneHotVec(cols, hots);
+    } while (isInMatrix(vec, retval));
+    retval[j] = vec;
+  }
+  
+  return retval;
+}
+
+boolean isInMatrix(float[] vec, float[][] matrix){
+  if(vec.length != matrix[0].length) return false;
+  
+  for(int i=0; i<matrix[0].length; i++)
+    if(equal(vec, matrix[i])) return true;
+  return false;
+}
+
+float[][] repeatRows(int rows, float[][] a){
+  float[][] retval = zeros(a.length*rows, a[0].length);
+
+  for (int j = 0; j < a.length; ++j) {
+    for (int i = 0; i < rows; ++i) {
+      retval[rows*j + i] = a[j];
+    }
+  }
+
+  return retval;  
+}
+
+float[][] repeatCols(int cols, float[][] a){
+  float[][] retval = zeros(a.length, a[0].length * cols);
+  for (int j = 0; j < a.length; ++j) {
+    int start = 0;
+    for (int i = 0; i < a[0].length; ++i) {
+      for (int c = 0; c < cols; ++c) {
+        retval[j][start+c] = a[j][i];
+      }
+      start += cols;
+    }
+  }
+  return retval;  
+}
+
+float[] populationEncode(float val, int size, float min, float max, float sigma) {
+    float[] retval = zeros(size);
+    retval = gaussian1(size, (size-1)*(val-min)/(max-min), sigma);
+    float n = norm1(retval);
+
+    if(n != 0)
+        multiply(1.0/n, retval);
+    return retval;
 }

@@ -15,6 +15,14 @@ float[][] id(int sz){
   return ret;
 }
 
+float[] ones(int dim){
+  float[] ret = zeros(dim);
+  for (int i = 0; i < ret.length; ++i) {
+    ret[i] = 1.0;
+  }
+  return ret;
+}
+
 float[][] ones(int rows, int cols){
   return ones(rows, cols, 1.f);
 }
@@ -53,6 +61,15 @@ float[] mult_per_elm(float[] a, float[] b){
   float[] retval = new float[a.length];
   for(int j=0; j<a.length; j++)
     retval[j] = a[j]*b[j];
+  return retval;
+}
+
+float[][] mult_per_elm(float[][] a, float[][] b){
+  assert(a.length == b.length && a[0].length == b[0].length);
+  float[][] retval = zeros(a.length, a[0].length);
+  for (int j = 0; j < a.length; ++j) {
+    retval[j] = mult_per_elm(a[j], b[j]);
+  }
   return retval;
 }
 
@@ -129,6 +146,29 @@ int argmax(float[] a){
     if(a[retval] < a[i])
       retval = i;
   return retval;
+}
+
+int argmax(float[] a, int start, int stop){
+  int retval = 0;
+  for (int i = start; i < stop; ++i) {
+    if(a[retval] < a[i])
+      retval = i;
+  }
+  return retval;
+}
+
+float limitval(float lower, float upper, float a){
+  float ret = 0;
+  
+    if(a < lower) 
+      ret = lower;
+    else if(a > upper) 
+      ret = upper;
+    else 
+      ret = a;
+  
+  return ret;
+  
 }
 
 float[] limitval(float lower, float upper, float[] a){
@@ -513,6 +553,20 @@ float sumArray(float[] a){
   return r;
 }
 
+float sumArray(ArrayList<Float> a){
+  float r = 0;
+  for(int i=0; i<a.size(); i++){
+    r += a.get(i);
+  }
+  return r;
+
+}
+
+float mean(float[] a){
+  return sumArray(a)/a.length;
+}
+
+
 float[] range_expand(float low, float high, float min, float max, float[] a){
   float[] r = zeros(a.length);
   for(int i=0; i<a.length; i++){
@@ -523,3 +577,32 @@ float[] range_expand(float low, float high, float min, float max, float[] a){
   return r;
 }
   
+float[][] transpose(float[][] a){
+  float[][] retval = zeros(a[0].length, a.length);
+  for (int j = 0; j < a.length; ++j) {
+    for (int i = 0; i < a[0].length; ++i) {
+      retval[i][j] = a[j][i];
+    }
+  }
+  return retval;
+}
+
+float gaussian1(float x, float sigma)
+{
+  return exp(-sq(x)/(2*sq(sigma)));
+}
+
+float[] gaussian1(int size, float center, float sigma) {
+  float[] retval = zeros(size);
+    
+  for (int i=0; i<size; i++)
+    retval[i] = gaussian1(center-(float)i, sigma);
+  return retval;
+}
+
+float norm1(float[] a) {
+  float r = 0;
+  for (int i=0; i < a.length; i++)
+    r += abs(a[i]);
+  return r;
+}
