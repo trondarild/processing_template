@@ -280,7 +280,7 @@ void drawColGrid(float x1, float y1, float dim, float[][] top){
   top - array of values: pos and neg values drawn differently
   */
   
-  drawColGrid(x1, y1, dim, 10, "", top);
+  drawColGrid(x1, y1, dim, 5, "", top);
 }
 
 void drawColGrid(float x1, float y1, float dim, float margin, String title, float[][] top){
@@ -840,4 +840,20 @@ float[] populationEncode(float val, int size, float min, float max, float sigma)
     if(n != 0)
         multiply(1.0/n, retval);
     return retval;
+}
+
+float[] setSubArray(float[] source, float[] target, int start){
+  // todo assert
+  float[] retval = zeros(target.length);
+  System.arraycopy(target, 0, retval, 0, target.length);
+  System.arraycopy(source, 0, retval, start, source.length);
+  return retval;
+    
+}
+
+
+float[] getSubArray(float[] source, int start, int length){
+  float[] retval = zeros(length);
+  System.arraycopy(source, start, retval, 0, length);
+  return retval;
 }
