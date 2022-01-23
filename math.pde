@@ -637,6 +637,27 @@ float sumArray(ArrayList<Float> a){
 
 }
 
+float[] strideSum(int stride, float[] a) {
+  float[] retval = zeros(a.length / stride);
+  int divs = a.length / stride;
+  assert(divs != 0 && a.length % stride == 0) : 
+    "a.length / stride = " + (a.length / stride) 
+    + "; a.length % stride = " + a.length % stride;
+  int retstart = 0;
+  float[] tmp = zeros(stride); 
+  for (int i = 0; i < divs; ++i) {
+    
+      // System.out.printf( "i: %d, t: %d, i*divs: %d, i*stride: %d, i*stride + stride*t: %d, retstart: %d %n", 
+      //   i, t, i*divs, i*stride, i*stride+stride*t, retstart);
+      // printArray("ret", retval);
+      System.arraycopy(a, i * stride, tmp, 0, stride);
+      retval[retstart] = sumArray(tmp);
+      retstart += 1;
+    
+  }
+  return retval;
+}
+
 float mean(float[] a){
   return sumArray(a)/a.length;
 }
@@ -682,6 +703,18 @@ float norm1(float[] a) {
   return r;
 }
 
+float norm1(float[][] a) {
+  float r = 0;
+  for (int j = 0; j < a.length; ++j) {
+    for (int i=0; i < a[0].length; i++)
+      r += abs(a[j][i]);
+  return r;
+}
+
 float[] normalize(float[] a) {
+  return multiply(1.0/norm1(a), a);
+}
+
+float[][] normalize(float[][] a) {
   return multiply(1.0/norm1(a), a);
 }

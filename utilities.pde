@@ -936,6 +936,22 @@ float[][] tileCols(int times, float[][] a) {
   return retval;
 }
 
+float[] strideTile(int times, int stride, float[] a) {
+  float[] retval = zeros(a.length * times);
+  int divs = a.length / stride;
+  assert(divs != 0 && a.length % stride == 0) : 
+    "a.length / stride = " + (a.length / stride) 
+    + "a.length % stride = " + a.length % stride;
+  int retstart = 0;
+  for (int i = 0; i < divs; ++i) {
+    for (int t = 0; t < times; ++t) {
+      System.arraycopy(a, i * stride, retval, retstart, stride);
+      retstart += stride;
+    }
+  }
+  return retval;
+}
+
 float[] populationEncode(float val, int size, float min, float max, float sigma) {
     float[] retval = zeros(size);
     retval = gaussian1(size, (size-1)*(val-min)/(max-min), sigma);
