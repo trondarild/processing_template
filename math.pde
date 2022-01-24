@@ -37,7 +37,7 @@ float[][] ones(int rows, int cols, float val){
 
 float[] randomArray(int sz, float max) {
   float[] retval = zeros(sz);
-  for (int i = 0; i < c; ++i) {
+  for (int i = 0; i < sz; ++i) {
       retval [i] = random(0, max);
   }  
   return retval;
@@ -713,7 +713,7 @@ float norm1(float[] a) {
 
 float norm1(float[][] a) {
   float r = 0;
-  for (int j = 0; j < a.length; ++j) {
+  for (int j = 0; j < a.length; ++j) 
     for (int i=0; i < a[0].length; i++)
       r += abs(a[j][i]);
   return r;
