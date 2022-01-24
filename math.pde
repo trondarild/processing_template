@@ -35,6 +35,14 @@ float[][] ones(int rows, int cols, float val){
   return ret;  
 }
 
+float[] randomArray(int sz, float max) {
+  float[] retval = zeros(sz);
+  for (int i = 0; i < c; ++i) {
+      retval [i] = random(0, max);
+  }  
+  return retval;
+}
+
 float[][] randomMatrix(int r, int c, float max){
   float[][] retval = zeros(r, c);
   for (int j = 0; j < r; ++j) {
