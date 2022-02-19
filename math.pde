@@ -7,6 +7,12 @@ float[] zeros (int dim){
   float [] ret = new float[dim];
   return ret;
 }
+
+float[][][][] zeros(int r, int c, int rr, int cc) {
+  return new float[r][c][rr][cc];
+
+}
+
 float[][] id(int sz){
   float [][] ret = zeros(sz, sz);
   for (int j=0; j < ret.length; j++)
@@ -71,8 +77,9 @@ float[] reset(float[] a) {
 
 float[][] reset(float[][] a){
   for (int j=0; j<a.length; j++)
-    for (int i=0; i<a[0].length; i++)
-      a[j][i] = 0;
+    Arrays.fill(a[j], 0);
+    //for (int i=0; i<a[0].length; i++)
+    //  a[j][i] = 0;
   return a;
 }
 
@@ -99,7 +106,7 @@ float[] mult_per_elm(float[] a, float[] b){
 }
 
 float[][] mult_per_elm(float[][] a, float[][] b){
-  assert(a.length == b.length && a[0].length == b[0].length);
+    assert(a.length == b.length && a[0].length == b[0].length) : "rows a: " + a.length + " vs b " + b.length +"; cols: "+ a[0].length +" vs "+ b[0].length;
   float[][] retval = zeros(a.length, a[0].length);
   for (int j = 0; j < a.length; ++j) {
     retval[j] = mult_per_elm(a[j], b[j]);
@@ -120,7 +127,8 @@ float dotProd(float[] a, float[] b){
 }
 
 float[][] dotProd(float[][] a, float[][] b){
-  // TODO assert sizes; assumes ab' is given
+  // assumes: b is already transposed
+    assert(a[0].length == b[0].length): "a[0]: " + a[0].length + " vs b[0]: " + b[0].length;
   float[][] retval = zeros(a.length, b.length);
   for (int j = 0; j < a.length; ++j) {
     for (int i = 0; i < b.length; ++i) {
@@ -131,7 +139,8 @@ float[][] dotProd(float[][] a, float[][] b){
 }
 
 float[][] dotProdT(float[][] a, float[][] b){
-  // TODO assert sizes; assumes ab' is given
+  // assumes b is not transposed
+  assert(a[0].length == b.length);  
   float[][] bt = transpose(b);
   float[][] retval = zeros(a.length, bt.length);
   for (int j = 0; j < a.length; ++j) {
@@ -167,11 +176,31 @@ float[] ravel(float[][] a){
   return ret;
 }
 
+float[] ravel(float[][][][] a) {
+  float[] ret = zeros(a.length*a[0].length*a[0][0].length*a[0][0][0].length);
+  int cnt = 0;
+  for (int j=0; j<a.length; j++)
+    for (int i=0; i<a[0].length; i++)
+      for (int jj=0; jj<a[0][0].length; jj++)
+        for (int ii=0; ii<a[0][0][0].length; ii++)
+          ret[cnt++] = a[j][i][jj][ii];
+  return ret;
+
+}
+
 float[] subtract(float[] a, float[] b){
   float [] ret = zeros(a.length);
   for (int j=0; j<ret.length; j++)
       ret[j] = a[j] - b[j];
   return ret;
+}
+
+float[][] subtract(float[][] a, float[][] b) {
+  assert(a.length == b.length && a[0].length == a[0].length) : "subtract: unequal length";
+  float[][] retval = zeros(a.length, a[0].length);
+  for (int j=0; j<retval.length; j++)
+      retval[j] = subtract(a[j], b[j]);
+  return retval;
 }
 
 float[] subtract(float[] a, float b){
@@ -187,6 +216,15 @@ float[] divide(float[] a, float b){
   for (int j=0; j<ret.length; j++)
       ret[j] = a[j] / b;
   return ret;
+}
+
+float[][] divide_per_elm(float[][] a, float[][] b) {
+  float[][] ret = zeros(a.length, a[0].length);
+  for (int j=0; j<ret.length; j++)
+    for (int i=0; i<ret[0].length; i++)
+      ret[j][i] = a[j][i] / b[j][i];
+  return ret;
+
 }
 
 float[][] subtractMatrix(float[][] a, float[][] b){
@@ -213,6 +251,15 @@ int argmax(float[] a){
   
   for(int i=0; i<a.length; i++)
     if(a[retval] < a[i])
+      retval = i;
+  return retval;
+}
+
+int argmin(float[] a){
+  int retval = 0;
+  
+  for(int i=0; i<a.length; i++)
+    if(a[retval] > a[i])
       retval = i;
   return retval;
 }
@@ -282,7 +329,7 @@ float[][] limitval(float lower, float upper, float[][] a){
 }
 
 float[][] getSubmatrix(int row, int col, int w, int h, float[][] m){
-  float[][] ret = zeros(w, h);
+  float[][] ret = zeros(h, w);
   for (int j=0; j<ret.length; j++){
     for (int i=0; i<ret[0].length; i++){
       ret[j][i] = m[row+j][col+i];  
@@ -511,6 +558,97 @@ float[][] deprojectMatrix(float[][] m, float near, float far, float fov){
   return output_matrix;
 }
 
+float[][] scaleMatrix(float[][] m, float sx, float sy){
+  int output_matrix_size_y = int(m.length*sy);
+  int output_matrix_size_x = int(m[0].length*sx);
+   int input_matrix_size_y = m.length;
+  int input_matrix_size_x = m[0].length; 
+  float[] element = new float[4];
+  float[] trans_mat = h_translation_matrix(
+                           0, //-input_matrix_size_x/1.0,
+                           0, //-input_matrix_size_y/1.0,
+                            0);
+    float[] detrans_mat = h_translation_matrix(                          
+                           0, //input_matrix_size_x/1.0,
+                           0, //input_matrix_size_y/1.0,
+                           0);
+   // get x and y Scales
+    int src_i = 0;
+    int src_j = 0;
+    float [] scale_mat = h_scaling_matrix(1.f/sx, 1.f/sy, 0);
+    float [][] output_matrix = zeros(output_matrix_size_y, output_matrix_size_x);
+    for (int i=0; i<output_matrix_size_y; i++) {
+        for (int j=0; j<output_matrix_size_x; j++) {
+            element[0] = (float)j;
+            element[1] = (float)i;
+            element[3] = 1.f;
+            float[] tmp1 = h_multiply_v(trans_mat, element);
+            float[] tmp2 = h_multiply_v(scale_mat, tmp1);
+            tmp1 = h_multiply_v(detrans_mat, tmp2);
+            src_i = Math.round(tmp1[1]);
+            src_j = Math.round(tmp1[0]);
+            if(src_i>=0 && src_i<input_matrix_size_y &&
+               src_j>=0 && src_j<input_matrix_size_x){
+                output_matrix[i][j] = m[src_i][src_j];
+                // printf("input assigned: %f", input_matrix[src_i][src_j]);
+            }
+            //if(debugmode)
+            //{
+            //    printf("dst_i=%i, dst_j=%i, src_i=%i, src_j=%i - ",i, j, src_i, src_j);
+            //    printf("output at %i, %i = %f\n", i, j, output_matrix[i][j]);
+            //}
+        }
+    }
+    return output_matrix;
+}
+
+float[][] scaleMatrixToSize(float[][] m, int awidth, int aheight){
+  int output_matrix_size_y = aheight;
+  int output_matrix_size_x = awidth;
+   int input_matrix_size_y = m.length;
+  int input_matrix_size_x = m[0].length; 
+  float sy = 1.0*aheight / input_matrix_size_y;
+  float sx = 1.0*awidth / input_matrix_size_x;
+  
+  float[] element = new float[4];
+  float[] trans_mat = h_translation_matrix(
+                           0, //-input_matrix_size_x/1.0,
+                           0, //-input_matrix_size_y/1.0,
+                            0);
+    float[] detrans_mat = h_translation_matrix(                          
+                           0, //input_matrix_size_x/1.0,
+                           0, //input_matrix_size_y/1.0,
+                           0);
+   // get x and y Scales
+    int src_i = 0;
+    int src_j = 0;
+    float [] scale_mat = h_scaling_matrix(1.f/sx, 1.f/sy, 0);
+    float [][] output_matrix = zeros(output_matrix_size_y, output_matrix_size_x);
+    for (int i=0; i<output_matrix_size_y; i++) {
+        for (int j=0; j<output_matrix_size_x; j++) {
+            element[0] = (float)j;
+            element[1] = (float)i;
+            element[3] = 1.f;
+            float[] tmp1 = h_multiply_v(trans_mat, element);
+            float[] tmp2 = h_multiply_v(scale_mat, tmp1);
+            tmp1 = h_multiply_v(detrans_mat, tmp2);
+            src_i = Math.round(tmp1[1]);
+            src_j = Math.round(tmp1[0]);
+            if(src_i>=0 && src_i<input_matrix_size_y &&
+               src_j>=0 && src_j<input_matrix_size_x){
+                output_matrix[i][j] = m[src_i][src_j];
+                // printf("input assigned: %f", input_matrix[src_i][src_j]);
+            }
+            //if(debugmode)
+            //{
+            //    printf("dst_i=%i, dst_j=%i, src_i=%i, src_j=%i - ",i, j, src_i, src_j);
+            //    printf("output at %i, %i = %f\n", i, j, output_matrix[i][j]);
+            //}
+        }
+    }
+    return output_matrix;
+}
+
 float[][] scaleMatrix(float[][] m, float sx, float sy, int out_x, int out_y){
   int output_matrix_size_y = out_y;
   int output_matrix_size_x = out_x;
@@ -691,6 +829,14 @@ float[][] transpose(float[][] a){
   return retval;
 }
 
+float[][] transpose(float[] a) {
+  float[][] retval = zeros(a.length, 1);
+  for (int i = 0; i < a.length; ++i) {
+    retval[i][0] = a[i];
+  }
+  return retval;
+}
+
 float gaussian1(float x, float sigma)
 {
   return exp(-sq(x)/(2*sq(sigma)));
@@ -713,9 +859,10 @@ float norm1(float[] a) {
 
 float norm1(float[][] a) {
   float r = 0;
-  for (int j = 0; j < a.length; ++j) 
+  for (int j = 0; j < a.length; ++j) {
     for (int i=0; i < a[0].length; i++)
       r += abs(a[j][i]);
+  }
   return r;
 }
 
@@ -725,4 +872,20 @@ float[] normalize(float[] a) {
 
 float[][] normalize(float[][] a) {
   return multiply(1.0/norm1(a), a);
+}
+
+float cosine_sim(float[] a, float[] b) {
+  /**
+  # Dot and norm
+  dot = sum(a*b for a, b in zip(vec_a, vec_b))
+  norm_a = sum(a*a for a in vec_a) ** 0.5
+  norm_b = sum(b*b for b in vec_b) ** 0.5
+
+  # Cosine similarity
+  cos_sim = dot / (norm_a*norm_b)
+  */
+  float dot = dotProd(a, b);
+  float norma = sqrt(sumArray(mult_per_elm(a, a)));
+  float normb = sqrt(sumArray(mult_per_elm(b, b)));
+  return dot/(norma*normb);
 }
