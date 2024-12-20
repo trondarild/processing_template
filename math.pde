@@ -889,3 +889,24 @@ float cosine_sim(float[] a, float[] b) {
   float normb = sqrt(sumArray(mult_per_elm(b, b)));
   return dot/(norma*normb);
 }
+
+float tanh_pade(float x) {
+    // Handle edge cases
+    if (x < -3.0) return -1.0;
+    if (x > 3.0) return 1.0;
+    
+    // Pade approximation
+    float x2 = x * x;
+    return x * (27.0 + x2) / (27.0 + 9.0 * x2);
+}
+
+float tanh(float x) {
+    float ex = exp(x);
+    float emx = exp(-x);
+    return (ex - emx) / (ex + emx);
+}
+
+float logistic(float x) {
+    float emx = exp(-x);
+    return 1 / (1 + emx);
+}
